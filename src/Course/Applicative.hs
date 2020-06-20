@@ -366,10 +366,8 @@ filtering ::
   (a -> k Bool)
   -> List a
   -> k (List a)
--- huge mess
-filtering f as = foldRight go (pure Nil) (zip (map f as) as)
-  where go (k, a) acc = (lift2 (go' a)) acc k
-        go' a acc b = if b then a :. acc else acc
+filtering f as = foldRight go (pure Nil) as
+  where go a = lift2 (\b -> if b then (a :.) else id) (f a)
 -----------------------
 -- SUPPORT LIBRARIES --
 -----------------------
