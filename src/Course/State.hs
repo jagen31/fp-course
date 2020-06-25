@@ -116,9 +116,7 @@ instance Monad (State s) where
     (a -> State s b)
     -> State s a
     -> State s b
-  k =<< st = State $ \s -> 
-    let (a, s') = runState st s in 
-      let (b, s'') = runState (k a) s' in (b, s'')
+  k =<< st = State $ \s -> let (a, s') = runState st s in runState (k a) s'
         
 
 -- | Find the first element in a `List` that satisfies a given predicate.
@@ -144,7 +142,7 @@ findM _ Nil = pure Empty
 findM p (x:.xs) = p x >>= \b -> if b then pure $ Full x else findM p xs
 
 repeatK :: (Ord a) => a -> State (S.Set a) Bool
-repeatK a = get >>= \s -> put (S.insert a s) >>= \_ -> pure (S.member a s)
+repeatK a = get >>= \s -> put (S.insert a s) >> pure (S.member a s)
 
 -- | Find the first element in a `List` that repeats.
 -- It is possible that no element repeats, hence an `Optional` result.
@@ -170,7 +168,7 @@ distinct ::
   List a
   -> List a
 distinct l = 
-  fst $ runState (filtering (pure . not <=< repeatK) l) S.empty
+  eval (filtering (pure . not <=< repeatK) l) S.empty
 
 -- | A happy number is a positive integer, where the sum of the square of its digits eventually reaches 1 after repetition.
 -- In contrast, a sad number (not a happy number) is where the sum of the square of its digits never reaches 1
